@@ -19,7 +19,7 @@ namespace Vinyl_db.Conexiones
         private OleDbCommand command;
         private OleDbDataReader reader;
 
-        public ObservableCollection<album> GetVinilos()
+        public ObservableCollection<album> getAlbums()
         {
             conexion = new OleDbConnection(cadenaConexion);
 
@@ -31,19 +31,19 @@ namespace Vinyl_db.Conexiones
             try
             {
                 conexion.Open(); 
-                reader = command.ExecuteReader(); 
+                reader = command.ExecuteReader();
 
                 while (reader.Read())
                 {
                     album album = new album();
-                    album.IdAlbum = (String)reader["idAlbum"];
-                    album.titulo = (String)reader["Titulo"];
-                    album.nombreArtista = (String)reader["NombreArtista"];
-                    album.numero_canciones = (String)reader["Numero_canciones"];
-                    album.calificacion = (String)reader["Calificacion"];
-                    album.genero = (String)reader["Genero"];
-                    album.coloresVinilo = (String)reader["ColoresVinilo"];
-                    album.cantidadVinilos = (String)reader["CantidadVinilos"];
+                    album.IdAlbum = (String)(reader["idAlbum"].ToString());
+                    album.titulo = (String)reader["Titulo"].ToString();
+                    album.nombreArtista = (String)reader["NombreArtista"].ToString();
+                    album.numero_canciones = (String)reader["Numero_canciones"].ToString();
+                    album.calificacion = (String)reader["Calificacion"].ToString();
+                    album.genero = (String)reader["Genero"].ToString();
+                    album.coloresVinilo = (String)reader["ColoresVinilo"].ToString();
+                    album.cantidadVinilos = (String)reader["CantidadVinilos"].ToString();
 
                     albums.Add(album);
                 }
@@ -82,8 +82,6 @@ namespace Vinyl_db.Conexiones
 
             conexion.Open();
             command.ExecuteNonQuery();
-
-
             conexion.Close();
         }
 
@@ -109,23 +107,23 @@ namespace Vinyl_db.Conexiones
             }
         }
 
-        public int editAlbum(string idAlbum, string titulo, string nombreArtista, string numero_canciones,string calificacion, string genero, string coloresVinilo, string cantidadVinilos)
+        public int editAlbum(album editedAlbum)
         {
             conexion = new OleDbConnection(cadenaConexion);
-            command = new OleDbCommand("UPDATE albums" 
-                + "SET idAlbum = @p1, titulo = @p2, nombreArtista = @p3, numero_canciones = @p4, calificacion = @p5, genero = @p6, coloresVinilo = @p7, cantidadVinilos = @p8"
+            command = new OleDbCommand("UPDATE albums "
+                + "SET titulo = @p2 , nombreArtista = @p3, numero_canciones = @p4, calificacion = @p5, genero = @p6, coloresVinilo = @p7, cantidadVinilos = @p8 "
                 + "WHERE idAlbum = @p1", conexion);
 
             command.CommandType = CommandType.Text;
 
-            command.Parameters.AddWithValue("@p1", nuevoAlbum.IdAlbum);
-            command.Parameters.AddWithValue("@p2", nuevoAlbum.titulo);
-            command.Parameters.AddWithValue("@p3", nuevoAlbum.nombreArtista);
-            command.Parameters.AddWithValue("@p4", nuevoAlbum.numero_canciones);
-            command.Parameters.AddWithValue("@p5", nuevoAlbum.calificacion);
-            command.Parameters.AddWithValue("@p6", nuevoAlbum.genero);
-            command.Parameters.AddWithValue("@p7", nuevoAlbum.coloresVinilo);
-            command.Parameters.AddWithValue("@p8", nuevoAlbum.cantidadVinilos);
+            command.Parameters.AddWithValue("@p1", editedAlbum.IdAlbum);
+            command.Parameters.AddWithValue("@p2", editedAlbum.titulo);
+            command.Parameters.AddWithValue("@p3", editedAlbum.nombreArtista);
+            command.Parameters.AddWithValue("@p4", editedAlbum.numero_canciones);
+            command.Parameters.AddWithValue("@p5", editedAlbum.calificacion);
+            command.Parameters.AddWithValue("@p6", editedAlbum.genero);
+            command.Parameters.AddWithValue("@p7", editedAlbum.coloresVinilo);
+            command.Parameters.AddWithValue("@p8", editedAlbum.cantidadVinilos);
 
 
             try

@@ -17,7 +17,7 @@ namespace Vinyl_db.model
         public string coloresVinilo { get; set; }
         public string cantidadVinilos { get; set; }
 
-        public album()
+        public album() { }
 
         public album(
             string IdAlbum, 

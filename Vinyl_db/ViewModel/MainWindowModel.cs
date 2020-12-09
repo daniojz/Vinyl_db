@@ -15,37 +15,22 @@ namespace Vinyl_db.ViewModel
 {
     public class MainWindowModel : INotifyPropertyChanged
     {
-        int contadorFilas;
 
-        OleDbConnection Conexion;
-        OleDbDataAdapter DataAdapter;
-        DataSet DataSet;
-
-        OleDbCommandBuilder Builder;
-
+        public Conexiones.Conexion conexion;
 
         public ICommand ComandoAccionInsert { get; set; }
         public ICommand ComandoAccionDelete { get; set; }
         public ICommand ComandoAccionEditar { get; set; }
 
-
-
+         
+        
         public MainWindowModel()
         {
-            contadorFilas = 0;
+           
+            conexion = new Conexiones.Conexion();
+            listaAlbums = conexion.getAlbums();
+            Contador = listaAlbums.Count().ToString();
 
-            Conexion = new OleDbConnection(); //objeto/clase conexión
-            Conexion.ConnectionString = "Provider = Microsoft.ACE.OLEDB.12.0; Data Source = D:\\MY DEVELOP\\Vinyl_db\\vinyl_db_v1.accdb"; //establezco la conexión con la base de datos
-
-            DataAdapter = new OleDbDataAdapter("SELECT * FROM albums", Conexion);
-            Builder = new OleDbCommandBuilder(DataAdapter);
-            DataSet = new DataSet();
-
-            Conexion.Open();
-            DataAdapter.Fill(DataSet, "albums"); //pasamos el resutado de la query con un nombre al data set (se pasa como una tabla)
-            Conexion.Close();
-
-            ActualizarDatos();
 
             //Comands->>
             ComandoAccionInsert = new Command(AccionInsert);
@@ -58,90 +43,41 @@ namespace Vinyl_db.ViewModel
 
         public void ActualizarDatos()
         {
-            DataRow fila;
-            ObservableCollection<album> albums = new ObservableCollection<album>();
-            int numeroDeFilas = (int)DataSet.Tables["albums"].Rows.Count;
-
-            for (int i = 0; i < numeroDeFilas; i++) {
-                fila = DataSet.Tables["albums"].Rows[i];
-
-                album album = new album(
-                    fila["IdAlbum"].ToString(),
-                    fila["titulo"].ToString(),
-                    fila["nombreArtista"].ToString(),
-                    fila["numero_canciones"].ToString(),
-                    fila["calificacion"].ToString(),
-                    fila["genero"].ToString(),
-                    fila["coloresVinilo"].ToString(),
-                    fila["cantidadVinilos"].ToString()
-                    );
-
-                albums.Add(album);
-            }
-
-            ListaAlbums = albums;
+            conexion = new Conexiones.Conexion();
+            ListaAlbums = conexion.getAlbums();
+            actualizarContador();
         }
-        
+
 
 
         //comands------------------------------------------------------------------------------>
         private void AccionInsert(object parámetro)
         {
-            //nos ponemos en la ultima posicion que es la del album insertado
-            int numeroDeFilas = (int)DataSet.Tables["albums"].Rows.Count;
-            contadorFilas = numeroDeFilas - 1;
+            album newAlbum = new album(
+                Contador+1,
+                Titulo,
+                NombreArtista,
+                Numero_canciones,
+                Calificacion,
+                Genero,
+                ColoresVinilo,
+                CantidadVinilos
+                );
 
-            DataRow F;
-
-            F = DataSet.Tables["albums"].NewRow(); //creamos una fila con el diseño de la tabla album
-
-            //añadimos a cada una de las columnas de la fila el nuevo album---------->
-            F["IdAlbum"] = contadorFilas+1;
-            F["titulo"] = Titulo;
-            F["nombreArtista"] = nombreArtista;
-            F["numero_canciones"] = Numero_canciones;
-            F["calificacion"] = Calificacion;
-            F["genero"] = Genero;
-            F["coloresVinilo"] = coloresVinilo;
-            F["cantidadVinilos"] = cantidadVinilos;
-
-
-            DataSet.Tables["albums"].Rows.Add(F);
-
-            MessageBox.Show("Vinilo añadido");
-
-
-            ActualizarDatos(); //actualizamos el listbox
-
-            actualizarContador();
-            actualizarDB();
+            conexion.addAlbum(newAlbum);
+            MessageBox.Show("Registro aregado exitosamente");
+            ActualizarDatos();
         }
 
         private void AccionDelete(object parámetro)
         {
-            actualizarDB();
+            album deletealbum = new album();
+            deletealbum = ViniloSeleccioando;
 
-            DataRow F = DataSet.Tables["albums"].Rows[Int32.Parse(ViniloSeleccioando.IdAlbum)-1];
-
-            MessageBoxResult mb = MessageBox.Show("Seguro que desea eliminar \"" + F["titulo"] + "\"", "Confirmar eliminación de registro", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-            if (mb == MessageBoxResult.Yes)
-            {
-                F.Delete();
-
-                //mediante el método getchanges(), obtenemos una tabla con las filas borradas
-
-                DataTable TablaBorrados;
-                TablaBorrados = DataSet.Tables["albums"].GetChanges(DataRowState.Deleted);
-
-                DataAdapter.Update(TablaBorrados);
-                DataSet.Tables["albums"].AcceptChanges();
-                MessageBox.Show("Vinilo Borrado");
-
-                contadorFilas = DataSet.Tables["albums"].Rows.Count - 1;
-                ActualizarDatos();
-                actualizarContador();
-            }
+            conexion.deleteAlbum(deletealbum.IdAlbum);
+            ActualizarDatos();
         }
+        
 
         private void AccionEditar(object parámetro)
         {
@@ -163,26 +99,12 @@ namespace Vinyl_db.ViewModel
 
         public void guardarEditar()
         {
-            DataRow F = DataSet.Tables["albums"].Rows[Int32.Parse(ViniloSeleccioando.IdAlbum) - 1];
-            F["IdAlbum"] = ViniloSeleccioando.IdAlbum;
-            F["titulo"] = ViniloSeleccioando.titulo;
-            F["nombreArtista"] = viniloSeleccioando.nombreArtista;
-            F["numero_canciones"] = viniloSeleccioando.numero_canciones;
-            F["calificacion"] = viniloSeleccioando.calificacion;
-            F["genero"] = viniloSeleccioando.genero;
-            F["coloresVinilo"] = viniloSeleccioando.coloresVinilo;
-            F["cantidadVinilos"] = viniloSeleccioando.cantidadVinilos;
+            conexion.editAlbum(viniloSeleccioando);
 
-
-            actualizarDB();
-
-        ActualizarDatos();
-
-            actualizarDB();
-
+            ActualizarDatos();
             MessageBox.Show("La base de datos se ha actualizado");
-            actualizarContador();
-            actualizarDB();
+
+
         }
 
 
@@ -345,15 +267,9 @@ namespace Vinyl_db.ViewModel
 
 
         //---------------------------------------------------------------------------------------------<
-        public void actualizarDB()
-        {
-            Conexion.Open();
-            DataAdapter.Update(DataSet.Tables["albums"]);
-            Conexion.Close();
-        }
         public void actualizarContador()
         {
-            Contador = contadorFilas + "/" + ((DataSet.Tables["albums"].Rows.Count) - 1);
+            Contador = ListaAlbums.Count().ToString();
         }
         public event PropertyChangedEventHandler PropertyChanged;
 
